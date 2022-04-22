@@ -1,19 +1,38 @@
-﻿body
-{
-	background: radial-gradient(red, blue);
+﻿
+﻿body {
+    background: radial-gradient(red, blue);
 }
 
-a
-{
-	color : 00d0f0;
+a {
+    color: #00d0f0;
 }
 
-.con
-{
-	color: black;
+.con {
+    color: black;
 }
 
-.ins
-{
-	color: black;
+.ins {
+    color: black;
 }
+.boutonV {
+    position: absolute;
+    top: 10px;
+    left: 300px;
+}
+.Tripnumber {
+    position: absolute;
+    top: 10px;
+    left: 100px;
+}
+.DriverID {
+    position: absolute;
+    top: 10px;
+    left: 150px;
+}
+.SystemType {
+    position: absolute;
+    top: 10px;
+    left: 200px;
+}
+
+
