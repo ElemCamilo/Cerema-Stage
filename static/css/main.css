@@ -1,0 +1,22 @@
+﻿﻿
+#bV {
+    position: absolute;
+    top: 10px;
+    left: 300px;
+}
+
+#Tripnumber {
+    position: absolute;
+    top: 10px;
+    left: 100px;
+}
+#DriverID {
+    position: absolute;
+    top: 10px;
+    left: 150px;
+}
+#SystemType {
+    position: absolute;
+    top: 10px;
+    left: 200px;
+}
