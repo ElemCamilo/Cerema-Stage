@@ -1,0 +1,5 @@
+Denomination_variables;Nom_colonne;Format_Time;Denomination_dictionnaires;Dictionnaire
+Longitude; ;;Dictionnaire nom variables(brut);{'vitesse instantanee': 'InstantSpeed_CAN','limite de la vitesse': 'SpeedLimit','temps (min)': 'temps_min'}
+Latitude;;;Colonnes choisies pour l'etude;[DriverID,Tripnumber]
+Altitude;;;Dictionnaire nom variables(agrege);{'Agrege1': 'N21_6T'}
+Time;;;;
