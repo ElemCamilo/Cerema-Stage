@@ -1,0 +1,10 @@
+body {
+    margin: 0;
+    background-color: #112330;
+}
+
+.banner{
+    background-color: #112330;
+    margin: 0px -10px 10px;
+    height: 75px;
+}

@@ -35,8 +35,8 @@ def filtrage_dataframe_Trajet(df,TripnumberA,TripnumberB):                      
 
 
 
-def filtrage_dataframe_conducteur(df, DriverIDA,DriverIDB, TripnumberA,TripnumberB):               # Filtrage du dataframe par trajet et par conducteur 
-    vitesse, temps, limite, Conducteur, Trajet, Longitude, Latitude, pente, conso, gear, DistanceCum, Acceleration, smoothed_acceleration, temps_min2, SystemType = variables(df_config)
+def filtrage_dataframe_conducteur(df, df_config, DriverIDA,DriverIDB, TripnumberA,TripnumberB):               # Filtrage du dataframe par trajet et par conducteur 
+    vitesse, temps, limite, Conducteur, Trajet, Longitude, Latitude, pente, conso, gear, DistanceCum, Acceleration, smoothed_acceleration, temps_min2, SystemType, names = variables(df_config)
     
     df2 = pd.DataFrame()
     fig_df = pd.DataFrame()
@@ -56,25 +56,25 @@ def filtrage_dataframe_conducteur(df, DriverIDA,DriverIDB, TripnumberA,Tripnumbe
         c_min_trips = max_trip(df)                                                                 # On retourne le/un des DriverID qui a le numéro de trajet le plus grand
         for driver in DriverIDB:                                                                   # On cherche à afficher les trajets que tous les conducteurs ont en commun, pour cela on prend le nombre de trajets de celui qui en a le moins
             if max(df[df[Conducteur] == c_min_trips][Trajet].unique()) > max(df[df[Conducteur] == driver][Trajet].unique()):       # Si le trajet le plus grand du conducteur qui a le moins par l'instant est supérieur au plus grand d'un des conducteur choisis (ex : 4 > 3, 4 et 3 étant des numéros de trajet)      
-                c_min_trips = driver                                                                                                           # On change le conducteur qui a le trajet le plus grand
+                c_min_trips = driver                                                                                               # On change le conducteur qui a le trajet le plus grand
         fig_df = fig_df[fig_df[Trajet] <= max(fig_df[fig_df[Conducteur] == c_min_trips][Trajet].unique())]                         # On choisit les trajets communs des conducteurs
                                                                                                                                               
     return fig_df
 
-def filtrage_dataframe(df, DriverIDA,DriverIDB, TripnumberA,TripnumberB):                          # Si on ne dispose pas du conducteur mais que du trajet, on lance la première fonction
+def filtrage_dataframe(df, df_config, DriverIDA,DriverIDB, TripnumberA,TripnumberB):               # Si on ne dispose pas du conducteur mais que du trajet, on lance la première fonction
     if DriverIDB == [None] :
         return filtrage_dataframe_Trajet(df,TripnumberA,TripnumberB)
     else:
-        return filtrage_dataframe_conducteur(df, DriverIDA,DriverIDB, TripnumberA,TripnumberB)
+        return filtrage_dataframe_conducteur(df, df_config, DriverIDA,DriverIDB, TripnumberA,TripnumberB)
 
 
-def update_map(df, DriverIDA,DriverIDB, TripnumberA,TripnumberB):                                  # Fonction qui met à jour la map Kepler
-    map_df = filtrage_dataframe(df, DriverIDA, DriverIDB, TripnumberA,TripnumberB)                 # On filtre les données pour avoir celles qui nous intéressent pour la map
+def update_map(df, df_config, DriverIDA,DriverIDB, TripnumberA,TripnumberB):                       # Fonction qui met à jour la map Kepler
+    map_df = filtrage_dataframe(df, df_config, DriverIDA, DriverIDB, TripnumberA,TripnumberB)      # On filtre les données pour avoir celles qui nous intéressent pour la map
     map_1 = KeplerGl(data={"DATA": map_df}, config = Configuration())                              # On définit la map. On utilise une configuration qu'on définit pour ajouter les icônes et les points directement sur la map et pas manuellement, c'est à dire en le choisissant sur Kepler 
     map_1.save_to_html(file_name="map.html", center_map = True)                                    # On sauvegarde la map dans un fichier html
     return open("map.html").read()                                                                 # On retourne le fichier html crée
 
-def update_Graph(df, DriverIDA,DriverIDB, TripnumberA,TripnumberB, x, y, Type1, options):          # Fonction qui permet de mettre à jour les graphiques
+def update_Graph(df, df_config, DriverIDA,DriverIDB, TripnumberA,TripnumberB, x, y, Type1, options):          # Fonction qui permet de mettre à jour les graphiques
     if x != []:
         x = x[-1]
     if y != []:
@@ -85,7 +85,7 @@ def update_Graph(df, DriverIDA,DriverIDB, TripnumberA,TripnumberB, x, y, Type1, 
         options = options[-1]
     
 
-    fig_df = filtrage_dataframe(df, DriverIDA,DriverIDB, TripnumberA,TripnumberB)                  # Filtrage des données
+    fig_df = filtrage_dataframe(df, df_config, DriverIDA,DriverIDB, TripnumberA,TripnumberB)         # Filtrage des données
           
     
     styleX = {'display': 'block'}                                                                  # Style de X
@@ -154,7 +154,7 @@ def update_Graph(df, DriverIDA,DriverIDB, TripnumberA,TripnumberB, x, y, Type1, 
 
 
 def update_Tripnumber_ou_DriverID(df, df_config,  A, B, type):                                     # Fonction qui permet la mise à jour des options de conducteur et de trajet. A et B peuvent être resp. DriverIDA et DriverIDB soit resp. TripnumberA et TripnumberB  
-    vitesse, temps, limite, Conducteur, Trajet, Longitude, Latitude, pente, conso, gear, DistanceCum, Acceleration, smoothed_acceleration, temps_min2, SystemType = variables(df_config)
+    vitesse, temps, limite, Conducteur, Trajet, Longitude, Latitude, pente, conso, gear, DistanceCum, Acceleration, smoothed_acceleration, temps_min2, SystemType, names = variables(df_config)
     options = [{"label": x, "value": x} for x in sorted(df[Trajet].unique()) if str(x) != 'nan']   # On prend dans l'ordre les trajets qu'il y a dans le dataframe
     if A == []:                                                                                    # Si on ne choisit pas ce qu'on veut comme niveau d'agrégation des conducteurs/trajets:
         valueA = []                                                                                #    - La valeur de A devient la liste vide
@@ -191,17 +191,18 @@ def update_Tripnumber_ou_DriverID(df, df_config,  A, B, type):                  
                 
 
 
-def ACP(df, columns):
-    layout = {'plot_bgcolor': 'rgba(0, 0, 0, 0)','paper_bgcolor': 'rgba(0, 0, 0, 0)'}   #style
+def ACP(df, df_config, columns):
+    vitesse, temps, limite, Conducteur, Trajet, Longitude, Latitude, pente, conso, gear, DistanceCum, Acceleration, smoothed_acceleration, temps_min2, SystemType, names= variables(df_config)
+    layout = {'plot_bgcolor': 'rgba(0, 0, 0, 0)','paper_bgcolor': 'rgba(0, 0, 0, 0)'}              # Style
     template = "plotly_dark"
 
-    # Tableau récapitulatif, avec les variances expliquées, les proportions de variance expliquée simples et cumulées
+                                                                                                   # Tableau récapitulatif, avec les variances expliquées, les proportions de variance expliquée simples et cumulées
     df2 = df[columns]
-    X = (df2-df2.min())/(df2.max()-df2.min())
+    X = (df2-df2.min())/(df2.max()-df2.min()) 
 
-    pca = PCA(n_components=len(columns))
-    components = pca.fit_transform(X)
-    eig = pd.DataFrame(
+    pca = PCA(n_components=len(columns))                                                           # Calcul de l'ACP en fonction des variables renseignés (dans la liste columns)
+    components = pca.fit_transform(X) 
+    eig = pd.DataFrame(                                                                            # Calcul des valeurs propres
     {
     "Dimension" : ["Dim" + str(x + 1) for x in range(len(columns))], 
     "Variance expliquée" : pca.explained_variance_,
@@ -209,24 +210,23 @@ def ACP(df, columns):
     "% cum. var. expliquée" : np.round(np.cumsum(pca.explained_variance_ratio_) * 100)
     }
     )
-    fig_val_prop = px.bar(eig, x = "Dimension", y = "% variance expliquée", text = columns) # permet un diagramme en barres
+    fig_val_prop = px.bar(eig, x = "Dimension", y = "% variance expliquée", text = columns)        # Permet un diagramme en barres
     fig_val_prop.update_layout(layout, template = template)
 
     if len(columns) >= 3:
-        return ACP3D(df, columns), fig_val_prop
+        return ACP3D(df, df_config, columns), fig_val_prop                                         # Dans le cas où il y a plus de 3 composantes on va afficher l'ACP sous forme 3d
 
-    else:     
-    # Histogramme des valeurs propres
+    else:                                                                                          
         loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
-        fig1 = px.scatter(components, x=0, y=1, text = df['names'], title = 'ACP', color = df['SystemType'])
+        fig1 = px.scatter(components, x=0, y=1, text = df[names], title = 'ACP', color = df[SystemType])   # Affichage des points de l'ACP (les groupes représentent différentes valeurs d'un variable qualitative)
         for i, feature in enumerate(columns):
-            fig1.add_shape(
+            fig1.add_shape(                                                                        # Ajout des axes représentants les composantes principales
                 type='line',
                 x0=0, y0=0,
                 x1=loadings[i, 0],
                 y1=loadings[i, 1]
             )
-            fig1.add_annotation(
+            fig1.add_annotation(                                                                   # Ajout des annotations
                 x=loadings[i, 0],
                 y=loadings[i, 1],
                 ax=0, ay=0,
@@ -234,53 +234,52 @@ def ACP(df, columns):
                 yanchor="bottom",
                 text=feature,
             )
-        fig1.update_layout(layout, template = template)
-        fig1.update_traces(textposition='top center')
+        fig1.update_layout(layout, template = template)                                            # Style des figures (mode obscur)
+        fig1.update_traces(textposition='top center')                                              # Pour afficher les noms au-dessus des points
         
-        #style des figures (mode obscur)
         return fig1, fig_val_prop
 
 
 def update_agrege(df, df_config, X, Variable_quali):
     
-    vitesse, temps, limite, Conducteur, Trajet, Longitude, Latitude, pente, conso, gear, DistanceCum, Acceleration, smoothed_acceleration, temps_min2, SystemType = variables(df_config)
+    vitesse, temps, limite, Conducteur, Trajet, Longitude, Latitude, pente, conso, gear, DistanceCum, Acceleration, smoothed_acceleration, temps_min2, SystemType, names = variables(df_config)
     
-    ## Partie ANOVA
+                                                                                                   # Partie ANOVA
      
-    df.to_csv('fichier_donnes.csv', header=True, columns = [X[-1]]+Variable_quali, index=False, sep=',')     # Création du fichier qui va être lu dans le script R
+    df.to_csv('fichier_donnes.csv', header=True, columns = [X[-1]]+Variable_quali, index=False, sep=',')      # Création du fichier qui va être lu dans le script R
 
-    os.chdir("C:/Program Files/R/R-4.1.2/bin")                                        
-    os.system('Rscript.exe C:/Users/camal/Documents/Stage_Cerema/Donnees/script_R.R')                        # Route où se trouve notre script R et lancement du script R (ANOVA)
+    os.chdir("C:/Program Files/R/R-4.1.0/bin")                                        
+    os.system('Rscript.exe C:/Users/camal/Documents/Stage_Cerema/Donnees/script_R.R')              # Route où se trouve notre script R et lancement du script R (ANOVA)
     os.chdir("C:/Users/camal/Documents/Stage_Cerema/Donnees/")
 
-    with open('data_ex_export.txt') as anova:                                                                 # Transformation du fichier texte obtenu en html
-        lines = anova.readlines()                                                                             # Liste contenant les lignes du fichier
-        df_anova = pd.DataFrame({'Anova': lines})                                                             # Pour le faire Vectoriellement et alors beaucoup plus rapidement
+    with open('data_ex_export.txt') as anova:                                                      # Transformation du fichier texte obtenu en html
+        lines = anova.readlines()                                                                  # Liste contenant les lignes du fichier
+        df_anova = pd.DataFrame({'Anova': lines})                                                  # Pour le faire Vectoriellement et alors beaucoup plus rapidement
         df_anova = '<pre>'+ df_anova + '</pre>'
         text_file = open("ANOVA.html", "w")
         text_file.write("<pre><h1>Anova</h1></pre>")   
-        text_file.write("<style>pre{color: white;}</style>")                                                  # Pour changer la couleur du texte en blanc
+        text_file.write("<style>pre{color: white;}</style>")                                       # Pour changer la couleur du texte en blanc
                               
         for i in range(len(df_anova['Anova'])):
             liste = list(df_anova['Anova'][i])
-            if liste != ['<', 'p', 'r', 'e', '>', '\n', '<', '/', 'p', 'r', 'e', '>']:                        # Pas besoin d'avoir des espaces en plus entre les lignes, raison du pourquoi on prend pas en compte les listes de ce type là 
+            if liste != ['<', 'p', 'r', 'e', '>', '\n', '<', '/', 'p', 'r', 'e', '>']:             # Pas besoin d'avoir des espaces en plus entre les lignes, raison du pourquoi on prend pas en compte les listes de ce type là 
                 for j in range(len(liste)):
                     text_file.write(liste[j])
             
-    text_file.close()                                                                                         # On sauvegarde le fichier ANOVA.html qui contient l'anova faite par R
+    text_file.close()                                                                              # On sauvegarde le fichier ANOVA.html qui contient l'anova faite par R
 
 
-    # boxplot pour Anova
+                                                                                                   # Boxplot pour Anova
 
-    df_agrege_conducteur = df.groupby([Conducteur, Trajet]).mean() #groupby sur les conducteurs et les trajets
+    df_agrege_conducteur = df.groupby([Conducteur, Trajet]).mean()                                 # Groupby sur les conducteurs et les trajets
     df_agrege_conducteur = df_agrege_conducteur.reset_index()
-    df_agrege_conducteurf = df[[SystemType,Conducteur, Trajet]].groupby([Conducteur, Trajet]).first() #groupby sur les conducteurs et les trajets
+    df_agrege_conducteurf = df[[SystemType,Conducteur, Trajet]].groupby([Conducteur, Trajet]).first()     # Groupby sur les conducteurs et les trajets
     df_agrege_conducteurf = df_agrege_conducteurf.reset_index()
     df_agrege = df_agrege_conducteur.merge(df_agrege_conducteurf)
 
 
     fig = px.box(df_agrege[[Variable_quali[-1], X[-1]]], x = Variable_quali[-1], y = X[-1], labels = label())
-    layout = {'plot_bgcolor': 'rgba(0, 0, 0, 0)','paper_bgcolor': 'rgba(0, 0, 0, 0)'}   #style
+    layout = {'plot_bgcolor': 'rgba(0, 0, 0, 0)','paper_bgcolor': 'rgba(0, 0, 0, 0)'}              # Style
     template = "plotly_dark"
     fig.update_layout(layout, template = template)
 
@@ -288,44 +287,54 @@ def update_agrege(df, df_config, X, Variable_quali):
     return open('ANOVA.html').read(), fig, [X[-1]]
 
 
+def update_df_agr(df, df_config, X):
+    vitesse, temps, limite, Conducteur, Trajet, Longitude, Latitude, pente, conso, gear, DistanceCum, Acceleration, smoothed_acceleration, temps_min2, SystemType, names = variables(df_config)
+    
+    df_agrege_conducteur = df.groupby([Conducteur, Trajet]).mean()                              # Groupby sur les conducteurs et les trajets
+    df_agrege_conducteur = df_agrege_conducteur.reset_index()
+    df_agrege_conducteurf = df[[SystemType,Conducteur, Trajet, names]].groupby([Conducteur, Trajet]).first() # Groupby sur les conducteurs et les trajets
+    df_agrege_conducteurf = df_agrege_conducteurf.reset_index()
+    df_agrege = df_agrege_conducteur.merge(df_agrege_conducteurf)
+    
+    df_agrege[SystemType][df_agrege[SystemType] == 'FS'] = None
+    df_agrege = df_agrege.dropna()
+    return(ACP(df_agrege, df_config, X))
 
-def ACP3D(df,columns):
+
+def ACP3D(df, df_config, columns):
+    vitesse, temps, limite, Conducteur, Trajet, Longitude, Latitude, pente, conso, gear, DistanceCum, Acceleration, smoothed_acceleration, temps_min2, SystemType, names= variables(df_config)
     df_agrege = df
-    df_agrege['SystemType2'] = df['SystemType'].replace('SS',0 )
-    df_agrege['SystemType2'] = df_agrege['SystemType'].replace('AS',1 )
 
     df2 = df_agrege[columns]
     X = (df2-df2.min())/(df2.max()-df2.min())
 
-    pca = PCA(n_components=len(columns))
+    pca = PCA(n_components=len(columns))                                                           # ACP (sklearn)
     components = pca.fit_transform(X)
     loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
     components = pd.DataFrame(components)
     trace_liste = []
 
-    for i in df_agrege['SystemType'].unique():
-        print(i)
-        df_agregeV = df_agrege[df_agrege['SystemType'] == i]
+    components[SystemType] = df_agrege[SystemType]                                                 # Pour pouvoir regrouper les points par couleur, on ajoute  la colonne de la variable quali associée aux points issus de l'ACP
 
-        trace1 = go.Scatter3d(
-            x=components[0],
-            y=components[1],
-            z=components[2],
+    for i in df_agrege[SystemType].unique():
+        components2 = components[components[SystemType] == i]
+
+        trace1 = go.Scatter3d(                                                                     # Affichage des points de l'ACP regroupé en fonction des valeurs de la variable quali
+            x=components2[0],
+            y=components2[1],
+            z=components2[2],
             mode='markers',
-            text = list(df_agregeV['names']),
             name = i,
+            text = list(df_agrege[names]),
             marker=dict(
                 size=2,
-                color= list(df_agregeV['SystemType']),           # set color to an array/list of desired values
-                colorscale = 'Viridis',
-
         )
         )
 
         trace_liste.append(trace1)
 
     for i, feature in enumerate(columns):
-        trace_liste.append(go.Scatter3d(
+        trace_liste.append(go.Scatter3d(                                                           # Ajout des axes des composantes principales à la figure
             x=[0,loadings[i,0]],
             y=[0, loadings[i,1]],
             z =[0, loadings[i,2]],
@@ -335,10 +344,9 @@ def ACP3D(df,columns):
         
     )
     fig = go.Figure(data= trace_liste)
-    layout = {'plot_bgcolor': 'rgba(0, 0, 0, 0)','paper_bgcolor': 'rgba(0, 0, 0, 0)'}   #style
+    layout = {'plot_bgcolor': 'rgba(0, 0, 0, 0)','paper_bgcolor': 'rgba(0, 0, 0, 0)'}              # Style
     template = "plotly_dark"
-    fig.update_layout(layout, template = template, title = 'ACP')
+    fig.update_layout(layout, template = template, title = 'ACP')                                  # Ajout du style et du titre
 
     return fig
-
 

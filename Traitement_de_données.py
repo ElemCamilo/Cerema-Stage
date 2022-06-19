@@ -31,8 +31,10 @@ def variables(df_config):                                                       
     smoothed_acceleration = df_config['Dictionnaire'][0]['Acceleration lissée']
     temps_min2 = df_config['Dictionnaire'][0]['temps (min)']
     SystemType = df_config['Dictionnaire'][0]['type du système']
+    names = df_config['Dictionnaire'][0]['noms']
 
-    return vitesse, temps, limite, Conducteur, Trajet, Longitude, Latitude, pente, conso, gear, DistanceCum, Acceleration, smoothed_acceleration, temps_min2, SystemType
+
+    return vitesse, temps, limite, Conducteur, Trajet, Longitude, Latitude, pente, conso, gear, DistanceCum, Acceleration, smoothed_acceleration, temps_min2, SystemType, names
 
 
 def df_label(df):                                                                        # Ici on définit le label qui apparait qu'on on met le curseur sur la map
@@ -104,6 +106,16 @@ def label():
     }
     return label
     
+
+def sansFS(df):
+    df2 = df[df['SystemType'] == 'AS']                                                   # On garde les lignes des conducteurs avec et sans système intégré dans leur voiture 
+    df3 = df[df['SystemType'] == 'SS']
+    df = pd.concat([df2, df3])                                                           # Concatenation des dataframes obtenus 
+    df = df.sort_index()
+    df = df.reset_index()
+
+    return df
+
                                                                 
 def calcul_conso(df):                                                                    # Calculer la consommation instantanée de carburant par L/100
     CumFuelp = df['CumFuel'].shift(periods = 1)                                          # On crée une copie de la colonne CumFuel décalé de 1 indice 
@@ -115,6 +127,8 @@ def calcul_conso(df):                                                           
     df = df.assign(ConsoFuel = Conso)
         
     df['ConsoFuel'][df['ConsoFuel'] < 0] = 0                                             # On set toutes valeur des la colonne ConsoFuel à 0 si la valeur de base est négative
+    df['ConsoFuel'][0] = 0
+    
     return(df)
 
 
@@ -166,8 +180,8 @@ def temps_min(df):                                                              
     df = df.drop(columns = ['debut'])
     return df
 
-#Agrégé par trajet 
-def calcul_temps(df):                                                                    # calcul la durée d’un trajet grâce à un groupby (on prend le dernier timestamp et on le transforme en au format H%M%S%MS) permet un affichage différent de temps_min dans certains cas
+                                                                                          
+def calcul_temps(df):                                                                    # Calcul la durée d’un trajet grâce à un groupby (on prend le dernier timestamp et on le transforme en au format H%M%S%MS) permet un affichage différent de temps_min dans certains cas
     df2 = df[['DriverID', 'Tripnumber', 'Timestamp']]  
     
     Duree = df2.groupby(["DriverID", "Tripnumber"]).last() - df2.groupby(["DriverID", "Tripnumber"]).first()     # Dernier du trajet moins premier timestamp du trajet
